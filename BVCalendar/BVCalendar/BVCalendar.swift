@@ -1,5 +1,5 @@
 //
-//  BVCalendarView.swift
+//  BVCalendar.swift
 //  BVCalendar
 //
 //  Created by Balazs Vincze on 2020. 01. 27..
@@ -8,8 +8,10 @@
 
 import UIKit
 
-final class BVCalendarView: UIView {
+final class BVCalendar: UIView {
     
+    // MARK: IBOutlets
+
     @IBOutlet private var collectionView: UICollectionView! {
         didSet {
             collectionView.dataSource = self
@@ -18,7 +20,7 @@ final class BVCalendarView: UIView {
             collectionView.register(BVCalendarHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
                                     withReuseIdentifier: headerIdentifier)
             collectionView.register(BVCalendarCell.self, forCellWithReuseIdentifier: cellIdentifier)
-
+            collectionView.allowsMultipleSelection = allowsRangeSelection
         }
     }
     @IBOutlet weak var dayNameLabelsStackView: UIStackView! {
@@ -26,14 +28,33 @@ final class BVCalendarView: UIView {
             setDayNames()
         }
     }
+        
+    // MARK: Public Properties
+
+    var selectedDate: Date?
+    var rangeStartDate: Date? {
+        if let indexPath = rangeStartIndexPath {
+            return date(at: indexPath)
+        } else {
+            return nil
+        }
+    }
+    var rangeEndDate: Date? {
+        if let indexPath = rangeEndIndexPath {
+            return date(at: indexPath)
+        } else {
+            return nil
+        }
+    }
+    var allowsPastDateSelection = false
+    var allowsRangeSelection = false {
+        didSet {
+            collectionView.allowsMultipleSelection = allowsRangeSelection
+        }
+    }
     
-    
-//    override var intrinsicContentSize: CGSize {
-//        CGSize(width: 100, height: 200)
-//    }
-    
-    var selectedDate = Date()
-    
+    // MARK: Private Properties
+
     private let headerIdentifier = "CalendarHeader"
     private let cellIdentifier = "CalendarCell"
     private let today = Date()
@@ -46,6 +67,11 @@ final class BVCalendarView: UIView {
         let currentYear = calendar.dateComponents([.year], from: today).year
         return calendar.date(from: DateComponents(year: currentYear, month: 1, day: 1))!
     }()
+    private var didScroll = false
+    private var rangeStartIndexPath: IndexPath?
+    private var rangeEndIndexPath: IndexPath?
+    
+    // MARK: Function Overrides
     
     override func awakeAfter(using coder: NSCoder) -> Any? {
         let view = loadFromNib()
@@ -55,42 +81,70 @@ final class BVCalendarView: UIView {
         return view
     }
     
-    func set(selectedDate: Date) {
-        self.selectedDate = selectedDate
-        layoutIfNeeded()
-        let dateComponents = calendar.dateComponents([.month, .day], from: selectedDate)
-        let section = calendar.dateComponents([.month], from: startDate, to: selectedDate).month!
-        // Select the corresponding cell for the date.
-        collectionView.selectItem(at: IndexPath(item: dateComponents.day! - 1, section: section),
-                                  animated: false, scrollPosition: [])
-        scrollTo(section: section)
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        if !didScroll {
+            didScroll = true
+            let indexPath = self.indexPath(for: (selectedDate ?? rangeStartDate) ?? Date())
+            collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+            scrollTo(section: indexPath.section, animated: false)
+        }
     }
+    
+    // MARK: Public Functions
+
+    func setSelectedRange(from: Date, to: Date) {
+        precondition(allowsRangeSelection, "Range selection must be enabled on the calendar.")
+        rangeStartIndexPath = indexPath(for: from)
+        rangeEndIndexPath = indexPath(for: to)
+        collectionView.layoutIfNeeded()
+        collectionView.reloadData()
+    }
+    
+    // MARK: Private Functions
         
     private func setDayNames() {
         for (i, subview) in dayNameLabelsStackView.arrangedSubviews.enumerated() {
             (subview as! UILabel).text = calendar.shortWeekdaySymbols[(i + calendar.firstWeekday - 1) % 7]
         }
     }
+        
+    private func indexPath(for date: Date) -> IndexPath {
+        let dateComponents = calendar.dateComponents([.month, .day], from: date)
+        let section = calendar.dateComponents([.month], from: startDate, to: date).month!
+        return IndexPath(item: dateComponents.day! - 1, section: section)
+    }
     
     private func date(at indexPath: IndexPath) -> Date {
         var date = calendar.date(byAdding: .month, value: indexPath.section, to: startDate)!
-        date = calendar.date(byAdding: .day, value: indexPath.row + 1, to: date)!
+        date = calendar.date(byAdding: .day, value: indexPath.row, to: date)!
         return calendar.date(bySettingHour: 23, minute: 59, second: 59, of: date)!
     }
     
     private func scrollTo(section: Int, animated: Bool = false) {
         // Scroll to the given section header (aka the month).
-        if let headerFrame = collectionView.layoutAttributesForSupplementaryElement(ofKind: UICollectionView.elementKindSectionHeader,
-                                                                                    at: IndexPath(item: 0, section: section))?.frame {
-            collectionView.setContentOffset(headerFrame.origin, animated: animated)
+        layoutIfNeeded()
+        if let frame = collectionView.layoutAttributesForSupplementaryElement(ofKind: UICollectionView.elementKindSectionHeader,
+                                                                              at: IndexPath(item: 0, section: section))?.frame {
+            collectionView.setContentOffset(frame.origin, animated: animated)
         }
+    }
+    
+    private func reloadItemsInRange() {
+        guard let start = rangeStartIndexPath, let end = rangeEndIndexPath else { return assertionFailure() }
+        UIView.performWithoutAnimation {
+            collectionView.reloadItems(at: collectionView.indexPathsForVisibleItems.filter { $0 >= start && $0 <= end })
+        }
+        collectionView.selectItem(at: start, animated: false, scrollPosition: [])
+        collectionView.selectItem(at: end, animated: false, scrollPosition: [])
     }
 
 }
 
 // MARK: UICollectionViewDataSource
 
-extension BVCalendarView: UICollectionViewDataSource {
+extension BVCalendar: UICollectionViewDataSource {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         3 * 12 // Show months 3 years ahead.
@@ -125,8 +179,30 @@ extension BVCalendarView: UICollectionViewDataSource {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! BVCalendarCell
         let dateForCell = date(at: indexPath)
         cell.label.text = "\(indexPath.row + 1)"
-        cell.isUserInteractionEnabled = dateForCell >= Date()
+        cell.isUserInteractionEnabled = allowsPastDateSelection || dateForCell >= Date()
         cell.containsCurrentDate = calendar.isDateInToday(dateForCell)
+        guard let rangeStartDate = rangeStartDate, let rangeEndDate = rangeEndDate else { return cell }
+
+        if allowsRangeSelection && cell.isUserInteractionEnabled {
+            cell.isSelected = indexPath == rangeStartIndexPath || indexPath == rangeEndIndexPath
+        }
+
+        if rangeStartIndexPath == indexPath {
+            cell.rangeIndicator = .start
+        } else if dateForCell > rangeStartDate && dateForCell < rangeEndDate {
+            if indexPath.row % 7 == 0 {
+                cell.rangeIndicator.insert(.rowStart)
+            } else if (indexPath.row + 1) % 7 == 0 {
+                cell.rangeIndicator.insert(.rowEnd)
+            } else {
+                cell.rangeIndicator = .middle
+            }
+        } else if rangeEndIndexPath == indexPath {
+            cell.rangeIndicator = .end
+        } else {
+            cell.rangeIndicator = .none
+        }
+                
         return cell
     }
     
@@ -134,17 +210,44 @@ extension BVCalendarView: UICollectionViewDataSource {
 
 // MARK: UICollectionViewDelegate
 
-extension BVCalendarView: UICollectionViewDelegate {
+extension BVCalendar: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        selectedDate = date(at: indexPath)
+        if allowsRangeSelection {
+            if rangeStartIndexPath == nil {
+                // Select start date.
+                rangeStartIndexPath = indexPath
+            } else if rangeEndIndexPath == nil && rangeStartIndexPath! < indexPath {
+                // Select end date.
+                rangeEndIndexPath = indexPath
+                reloadItemsInRange()
+            } else {
+                // Select a new start date.
+                rangeStartIndexPath = indexPath
+                rangeEndIndexPath = nil
+                collectionView.reloadData()
+                collectionView.layoutIfNeeded()
+                collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+            }
+        } else {
+            selectedDate = date(at: indexPath)
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        if allowsRangeSelection {
+            rangeEndIndexPath = nil
+            collectionView.reloadData()
+            collectionView.layoutIfNeeded()
+            collectionView.selectItem(at: rangeStartIndexPath!, animated: false, scrollPosition: [])
+        }
     }
     
 }
 
 // MARK: UICollectionViewDelegateFlowLayout
 
-extension BVCalendarView: UICollectionViewDelegateFlowLayout {
+extension BVCalendar: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -155,7 +258,7 @@ extension BVCalendarView: UICollectionViewDelegateFlowLayout {
 
 // MARK: UIScrollViewDelegate
 
-extension BVCalendarView: UIScrollViewDelegate {
+extension BVCalendar: UIScrollViewDelegate {
 
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         let yOffset = collectionView.visibleSize.height / 2
@@ -172,13 +275,14 @@ extension BVCalendarView: UIScrollViewDelegate {
             else { return }
         // Adjust the target offset so the closest section's header is always at the top.
         targetContentOffset.pointee = header.frame.origin
+//        print(header.frame.origin.y)
     }
     
 }
 
 // MARK: BVCalendarLayoutDelegate
 
-extension BVCalendarView: BVCalendarLayoutDelegate {
+extension BVCalendar: BVCalendarLayoutDelegate {
     
     func offsetForItem(at indexPath: IndexPath) -> Int {
         calendar.dateComponents([.weekday], from: date(at: indexPath)).weekday! - calendar.firstWeekday

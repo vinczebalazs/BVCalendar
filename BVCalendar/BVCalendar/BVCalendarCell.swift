@@ -10,10 +10,21 @@ import UIKit
 
 final class BVCalendarCell: UICollectionViewCell {
     
+    struct RangeIndicatorType: OptionSet {
+        let rawValue: Int
+
+        static let none = RangeIndicatorType(rawValue: 1 << 0)
+        static let start = RangeIndicatorType(rawValue: 1 << 1)
+        static let middle = RangeIndicatorType(rawValue: 1 << 2)
+        static let end = RangeIndicatorType(rawValue: 1 << 3)
+        static let rowStart = RangeIndicatorType(rawValue: 1 << 4)
+        static let rowEnd = RangeIndicatorType(rawValue: 1 << 5)
+    }
+    
     override var isSelected: Bool {
         didSet {
             label.textColor = isSelected ? .white : .black
-            label.backgroundColor = isSelected ? .systemBlue : .white
+            label.backgroundColor = isSelected ? selectionColor : .white
         }
     }
     override var isUserInteractionEnabled: Bool {
@@ -26,6 +37,11 @@ final class BVCalendarCell: UICollectionViewCell {
             label.layer.borderWidth = (containsCurrentDate && !isSelected) ? 1 : 0
         }
     }
+    var rangeIndicator: RangeIndicatorType = [] {
+        didSet {
+            styleForRangeIndication()
+        }
+    }
     lazy var label: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -35,10 +51,12 @@ final class BVCalendarCell: UICollectionViewCell {
         label.layer.borderColor = UIColor.lightGray.cgColor
         return label
     }()
+    private let selectionColor = UIColor.systemBlue
+    private let backgroundMaskLayer = CAShapeLayer()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-                
+        
         contentView.addSubview(label)
         NSLayoutConstraint.activate([
             label.leftAnchor.constraint(equalTo: contentView.leftAnchor),
@@ -56,6 +74,45 @@ final class BVCalendarCell: UICollectionViewCell {
         super.layoutSubviews()
         
         label.layer.cornerRadius = frame.width / 2
+    }
+        
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        rangeIndicator = .none
+        layer.mask = nil
+        layer.cornerRadius = 0
+    }
+    
+    private func styleForRangeIndication() {
+        backgroundColor = selectionColor.withAlphaComponent(0.5)
+        layer.mask = backgroundMaskLayer
+        label.backgroundColor = isSelected ? selectionColor : .clear
+        layer.cornerRadius = 5
+        
+        var cornersToRound: UIRectCorner = []
+        var radius = frame.width / 2
+                
+        if rangeIndicator.contains(.none) {
+            backgroundColor = nil
+        } else if rangeIndicator.contains(.start) {
+            cornersToRound = [.topLeft, .bottomLeft]
+        } else if rangeIndicator.contains(.middle) {
+            layer.cornerRadius = 0
+        } else if rangeIndicator.contains(.end) {
+            cornersToRound = [.topRight, .bottomRight]
+        } else if rangeIndicator == .rowStart {
+            layer.cornerRadius = 0
+            radius = 6
+            cornersToRound = [.topLeft, .bottomLeft]
+        } else if rangeIndicator == .rowEnd {
+            layer.cornerRadius = 0
+            radius = 6
+            cornersToRound = [.topRight, .bottomRight]
+        }
+
+        backgroundMaskLayer.path = UIBezierPath(roundedRect: layer.bounds, byRoundingCorners: cornersToRound,
+                                                cornerRadii: CGSize(width: radius, height: 0.0)).cgPath
     }
         
 }
