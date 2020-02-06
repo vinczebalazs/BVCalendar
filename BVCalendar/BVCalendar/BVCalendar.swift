@@ -84,12 +84,12 @@ final class BVCalendar: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        if !didScroll {
-            didScroll = true
-            let indexPath = self.indexPath(for: (selectedDate ?? rangeStartDate) ?? Date())
-            collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
-            scrollTo(section: indexPath.section, animated: false)
-        }
+//        if !didScroll {
+//            didScroll = true
+//            let indexPath = self.indexPath(for: (selectedDate ?? rangeStartDate) ?? Date())
+//            collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+//            scrollTo(section: indexPath.section, animated: false)
+//        }
     }
     
     // MARK: Public Functions
@@ -147,6 +147,7 @@ final class BVCalendar: UIView {
 extension BVCalendar: UICollectionViewDataSource {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return 5
         3 * 12 // Show months 3 years ahead.
     }
     
@@ -174,7 +175,7 @@ extension BVCalendar: UICollectionViewDataSource {
         header.date = calendar.date(byAdding: .month, value: indexPath.section, to: startDate)
         return header
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! BVCalendarCell
         let dateForCell = date(at: indexPath)
@@ -274,8 +275,7 @@ extension BVCalendar: UIScrollViewDelegate {
                                                                                 at: IndexPath(item: 0, section: section))
             else { return }
         // Adjust the target offset so the closest section's header is always at the top.
-        targetContentOffset.pointee = header.frame.origin
-//        print(header.frame.origin.y)
+//        targetContentOffset.pointee = header.frame.origin
     }
     
 }
