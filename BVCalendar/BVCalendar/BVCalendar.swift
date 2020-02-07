@@ -9,26 +9,7 @@
 import UIKit
 
 final class BVCalendar: UIView {
-    
-    // MARK: IBOutlets
-
-    @IBOutlet private var collectionView: UICollectionView! {
-        didSet {
-            collectionView.dataSource = self
-            collectionView.delegate = self
-            (collectionView.collectionViewLayout as! BVCalendarLayout).delegate = self
-            collectionView.register(BVCalendarHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-                                    withReuseIdentifier: headerIdentifier)
-            collectionView.register(BVCalendarCell.self, forCellWithReuseIdentifier: cellIdentifier)
-            collectionView.allowsMultipleSelection = allowsRangeSelection
-        }
-    }
-    @IBOutlet weak var dayNameLabelsStackView: UIStackView! {
-        didSet {
-            setDayNames()
-        }
-    }
-        
+     
     // MARK: Public Properties
 
     var selectedDate: Date?
@@ -55,6 +36,34 @@ final class BVCalendar: UIView {
     
     // MARK: Private Properties
 
+    private lazy var collectionView: UICollectionView = {
+        let layout = BVCalendarLayout()
+        layout.delegate = self
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.backgroundColor = .clear
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.register(BVCalendarHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+                                withReuseIdentifier: headerIdentifier)
+        collectionView.register(BVCalendarCell.self, forCellWithReuseIdentifier: cellIdentifier)
+        collectionView.allowsMultipleSelection = allowsRangeSelection
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.showsHorizontalScrollIndicator = false
+        return collectionView
+    }()
+    private lazy var dayNameLabelsStackView: UIStackView = {
+        let stackView = UIStackView(frame: .zero)
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.distribution = .fillEqually
+        for i in 0..<7 {
+            let label = UILabel()
+            label.text = calendar.shortWeekdaySymbols[(i + calendar.firstWeekday - 1) % 7]
+            label.textAlignment = .center
+            stackView.addArrangedSubview(label)
+        }
+        return stackView
+    }()
     private let headerIdentifier = "CalendarHeader"
     private let cellIdentifier = "CalendarCell"
     private let today = Date()
@@ -73,23 +82,39 @@ final class BVCalendar: UIView {
     
     // MARK: Function Overrides
     
-    override func awakeAfter(using coder: NSCoder) -> Any? {
-        let view = loadFromNib()
-        view?.frame = frame
-        view?.translatesAutoresizingMaskIntoConstraints = false
-        translatesAutoresizingMaskIntoConstraints = false
-        return view
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        
+        setup()
+    }
+    
+    override var intrinsicContentSize: CGSize {
+        CGSize(width: frame.width, height: dayNameLabelsStackView.frame.height + (frame.width / 7) * 6 + 50)
+    }
+    
+    private func setup() {
+        addSubview(dayNameLabelsStackView)
+        addSubview(collectionView)
+        NSLayoutConstraint.activate([
+            dayNameLabelsStackView.leftAnchor.constraint(equalTo: leftAnchor),
+            dayNameLabelsStackView.topAnchor.constraint(equalTo: topAnchor),
+            dayNameLabelsStackView.rightAnchor.constraint(equalTo: rightAnchor),
+            collectionView.leftAnchor.constraint(equalTo: leftAnchor),
+            collectionView.topAnchor.constraint(equalTo: dayNameLabelsStackView.bottomAnchor),
+            collectionView.rightAnchor.constraint(equalTo: rightAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        
-//        if !didScroll {
-//            didScroll = true
-//            let indexPath = self.indexPath(for: (selectedDate ?? rangeStartDate) ?? Date())
-//            collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
-//            scrollTo(section: indexPath.section, animated: false)
-//        }
+
+        if !didScroll {
+            didScroll = true
+            let indexPath = self.indexPath(for: (selectedDate ?? rangeStartDate) ?? Date())
+            collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+            scrollTo(section: indexPath.section, animated: false)
+        }
     }
     
     // MARK: Public Functions
@@ -103,13 +128,7 @@ final class BVCalendar: UIView {
     }
     
     // MARK: Private Functions
-        
-    private func setDayNames() {
-        for (i, subview) in dayNameLabelsStackView.arrangedSubviews.enumerated() {
-            (subview as! UILabel).text = calendar.shortWeekdaySymbols[(i + calendar.firstWeekday - 1) % 7]
-        }
-    }
-        
+    
     private func indexPath(for date: Date) -> IndexPath {
         let dateComponents = calendar.dateComponents([.month, .day], from: date)
         let section = calendar.dateComponents([.month], from: startDate, to: date).month!
@@ -147,7 +166,6 @@ final class BVCalendar: UIView {
 extension BVCalendar: UICollectionViewDataSource {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return 5
         3 * 12 // Show months 3 years ahead.
     }
     
@@ -275,7 +293,7 @@ extension BVCalendar: UIScrollViewDelegate {
                                                                                 at: IndexPath(item: 0, section: section))
             else { return }
         // Adjust the target offset so the closest section's header is always at the top.
-//        targetContentOffset.pointee = header.frame.origin
+        targetContentOffset.pointee = header.frame.origin
     }
     
 }

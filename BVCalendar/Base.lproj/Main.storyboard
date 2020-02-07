@@ -17,7 +17,7 @@
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="CbA-BM-mNK" customClass="BVCalendar" customModule="BVCalendar" customModuleProvider="target">
                                 <rect key="frame" x="20" y="438" width="374" height="176"/>
-                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                <color key="backgroundColor" systemColor="systemBlueColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="CbA-BM-mNK" secondAttribute="height" multiplier="374:333" constant="176.33033033033033" id="kJ5-0I-Pp6"/>
                                 </constraints>

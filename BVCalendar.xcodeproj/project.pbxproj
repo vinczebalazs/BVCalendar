@@ -18,7 +18,6 @@
 		B6D558CD23E0D99E0020C744 /* BVCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D558C823E0D99E0020C744 /* BVCalendar.swift */; };
 		B6D558CE23E0D99F0020C744 /* BVCalendarCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D558C923E0D99E0020C744 /* BVCalendarCell.swift */; };
 		B6D558CF23E0D99F0020C744 /* BVCalendarLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D558CA23E0D99E0020C744 /* BVCalendarLayout.swift */; };
-		B6D558D023E0D99F0020C744 /* BVCalendar.xib in Resources */ = {isa = PBXBuildFile; fileRef = B6D558CB23E0D99E0020C744 /* BVCalendar.xib */; };
 		B6D558D223E0DA5D0020C744 /* UIView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D558D123E0DA5D0020C744 /* UIView+Extension.swift */; };
 /* End PBXBuildFile section */
 
@@ -36,7 +35,6 @@
 		B6D558C823E0D99E0020C744 /* BVCalendar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BVCalendar.swift; sourceTree = "<group>"; };
 		B6D558C923E0D99E0020C744 /* BVCalendarCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BVCalendarCell.swift; sourceTree = "<group>"; };
 		B6D558CA23E0D99E0020C744 /* BVCalendarLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BVCalendarLayout.swift; sourceTree = "<group>"; };
-		B6D558CB23E0D99E0020C744 /* BVCalendar.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BVCalendar.xib; sourceTree = "<group>"; };
 		B6D558D123E0DA5D0020C744 /* UIView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extension.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -86,11 +84,10 @@
 		B6D558BC23E0D97A0020C744 /* BVCalendar */ = {
 			isa = PBXGroup;
 			children = (
-				B6D558C923E0D99E0020C744 /* BVCalendarCell.swift */,
-				B6D558C723E0D99E0020C744 /* BVCalendarHeader.swift */,
-				B6D558CA23E0D99E0020C744 /* BVCalendarLayout.swift */,
 				B6D558C823E0D99E0020C744 /* BVCalendar.swift */,
-				B6D558CB23E0D99E0020C744 /* BVCalendar.xib */,
+				B6D558CA23E0D99E0020C744 /* BVCalendarLayout.swift */,
+				B6D558C723E0D99E0020C744 /* BVCalendarHeader.swift */,
+				B6D558C923E0D99E0020C744 /* BVCalendarCell.swift */,
 				B6D558D123E0DA5D0020C744 /* UIView+Extension.swift */,
 			);
 			path = BVCalendar;
@@ -157,7 +154,6 @@
 				B6ABE07023EB23900011CA52 /* TODO.txt in Resources */,
 				B6D558B523E0D9320020C744 /* LaunchScreen.storyboard in Resources */,
 				B6D558B223E0D9320020C744 /* Assets.xcassets in Resources */,
-				B6D558D023E0D99F0020C744 /* BVCalendar.xib in Resources */,
 				B6D558B023E0D9300020C744 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

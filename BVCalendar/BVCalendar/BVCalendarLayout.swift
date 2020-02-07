@@ -27,61 +27,57 @@ final class BVCalendarLayout: UICollectionViewLayout {
     
     override func prepare() {
         guard let collectionView = collectionView else { return }
-        
+                                
         // Reset cached information.
         cachedHeaderAttributes.removeAll()
         cachedCellAttributes.removeAll()
         contentBounds = CGRect()
         
         var lastFrame = CGRect()
-        var newRowBreakPoint = 0
-        var yOffset = CGFloat(0)
+        var cellXOffset = CGFloat(0)
         
         for section in 0..<collectionView.numberOfSections {
-            
+                        
             // Calculate section header attributes.
             let attributes = UICollectionViewLayoutAttributes(forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
                                                               with: IndexPath(item: 0, section: section))
-            attributes.frame = CGRect(x: 0, y: yOffset, width: contentBounds.width, height: sectionHeight)
-            yOffset += attributes.frame.maxY
+            attributes.frame = CGRect(x: 0, y: lastFrame.maxY, width: collectionView.bounds.width, height: sectionHeight)
             cachedHeaderAttributes.append(attributes)
-            
+            lastFrame = attributes.frame
+
             for item in 0..<collectionView.numberOfItems(inSection: section) {
-                                
+                
                 // Calculate cell attributes.
-                var frame = CGRect(x: lastFrame.maxX, y: yOffset,
-                                   width: collectionView.frame.width / 7, height: collectionView.frame.width / 7)
-                
-                if newRowBreakPoint % 7 == 0 {
-                    newRowBreakPoint = 0
-                    yOffset += frame.height
-                    frame.origin.x = 0
-                    frame.origin.y = yOffset
-                }
-                
-                newRowBreakPoint += 1
+                var frame = CGRect(x: cellXOffset, y: item == 0 ? lastFrame.maxY : lastFrame.minY,
+                                   width: collectionView.bounds.width / 7, height: collectionView.bounds.width / 7)
                 
                 if section == 0 && item == 0 {
                     // Offset the first cell because the first day of a month isn't always the first weekday.
                     let offset = delegate.offsetForItem(at: IndexPath(item: item, section: section))
                     frame.origin.x = CGFloat(offset) * frame.width
-                    newRowBreakPoint += offset
+                    frame.origin.y = lastFrame.maxY
                 }
                 
-                lastFrame = frame
-                
+                if frame.maxX > collectionView.bounds.width {
+                    // Break onto a new line if the cell would go off-screen.
+                    frame.origin.x = 0
+                    frame.origin.y = lastFrame.maxY
+                }
+                                 
                 let indexPath = IndexPath(item: item, section: section)
                 let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
                 attributes.frame = frame
+                lastFrame = frame
+                cellXOffset = frame.maxX
                 cachedCellAttributes[indexPath] = attributes
                 
+                // Grow the content bounds so the collection view grows too.
                 contentBounds = contentBounds.union(frame)
             }
         }
     }
         
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        // Loop through the cache and look for items that are within the given rect.
         cachedHeaderAttributes + cachedCellAttributes.values.filter { $0.frame.intersects(rect) }
     }
     
@@ -90,8 +86,7 @@ final class BVCalendarLayout: UICollectionViewLayout {
     }
     
     override func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        print(cachedHeaderAttributes[indexPath.section].frame)
-        return cachedHeaderAttributes[indexPath.section]
+        cachedHeaderAttributes[indexPath.section]
     }
 
 }
