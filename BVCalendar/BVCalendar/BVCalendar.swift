@@ -8,7 +8,14 @@
 
 import UIKit
 
+@IBDesignable
 final class BVCalendar: UIView {
+    
+    // MARK: Property Overrides
+    
+    override var intrinsicContentSize: CGSize {
+        CGSize(width: frame.width, height: dayNameLabelsStackView.frame.height + (frame.width / 7) * 6 + 50)
+    }
      
     // MARK: Public Properties
 
@@ -88,22 +95,10 @@ final class BVCalendar: UIView {
         setup()
     }
     
-    override var intrinsicContentSize: CGSize {
-        CGSize(width: frame.width, height: dayNameLabelsStackView.frame.height + (frame.width / 7) * 6 + 50)
-    }
-    
-    private func setup() {
-        addSubview(dayNameLabelsStackView)
-        addSubview(collectionView)
-        NSLayoutConstraint.activate([
-            dayNameLabelsStackView.leftAnchor.constraint(equalTo: leftAnchor),
-            dayNameLabelsStackView.topAnchor.constraint(equalTo: topAnchor),
-            dayNameLabelsStackView.rightAnchor.constraint(equalTo: rightAnchor),
-            collectionView.leftAnchor.constraint(equalTo: leftAnchor),
-            collectionView.topAnchor.constraint(equalTo: dayNameLabelsStackView.bottomAnchor),
-            collectionView.rightAnchor.constraint(equalTo: rightAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
-        ])
+    override func prepareForInterfaceBuilder() {
+        super.prepareForInterfaceBuilder()
+        
+        setup()
     }
     
     override func layoutSubviews() {
@@ -128,6 +123,20 @@ final class BVCalendar: UIView {
     }
     
     // MARK: Private Functions
+    
+    private func setup() {
+        addSubview(dayNameLabelsStackView)
+        addSubview(collectionView)
+        NSLayoutConstraint.activate([
+            dayNameLabelsStackView.leftAnchor.constraint(equalTo: leftAnchor),
+            dayNameLabelsStackView.topAnchor.constraint(equalTo: topAnchor),
+            dayNameLabelsStackView.rightAnchor.constraint(equalTo: rightAnchor),
+            collectionView.leftAnchor.constraint(equalTo: leftAnchor),
+            collectionView.topAnchor.constraint(equalTo: dayNameLabelsStackView.bottomAnchor),
+            collectionView.rightAnchor.constraint(equalTo: rightAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+    }
     
     private func indexPath(for date: Date) -> IndexPath {
         let dateComponents = calendar.dateComponents([.month, .day], from: date)
