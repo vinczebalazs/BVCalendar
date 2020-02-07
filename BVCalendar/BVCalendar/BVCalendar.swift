@@ -281,7 +281,7 @@ extension BVCalendar: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        CGSize(width: collectionView.frame.width / 7, height: collectionView.frame.width / 7)
+        CGSize(width: collectionView.bounds.width / 7, height: collectionView.bounds.width / 7)
     }
     
 }
@@ -291,9 +291,9 @@ extension BVCalendar: UICollectionViewDelegateFlowLayout {
 extension BVCalendar: UIScrollViewDelegate {
 
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        let yOffset = collectionView.visibleSize.height / 2
-        let leftPoint = CGPoint(x: collectionView.frame.width / 7, y: targetContentOffset.pointee.y + yOffset)
-        let rightPoint = CGPoint(x: collectionView.frame.width, y: targetContentOffset.pointee.y + yOffset)
+        let yOffset = collectionView.bounds.height / 2
+        let leftPoint = CGPoint(x: collectionView.bounds.width / 7, y: targetContentOffset.pointee.y + yOffset)
+        let rightPoint = CGPoint(x: collectionView.bounds.width, y: targetContentOffset.pointee.y + yOffset)
         var indexPath = collectionView.indexPathForItem(at: leftPoint) ?? collectionView.indexPathForItem(at: rightPoint)
         if indexPath == nil {
             // If no cell was found at the given index, it's because a section header is there, so use the index of the header.
