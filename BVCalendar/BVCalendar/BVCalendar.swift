@@ -107,7 +107,9 @@ final class BVCalendar: UIView {
         if !didScroll {
             didScroll = true
             let indexPath = self.indexPath(for: (selectedDate ?? rangeStartDate) ?? Date())
-            collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+            if !allowsRangeSelection {
+                collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+            }
             scrollTo(section: indexPath.section, animated: false)
         }
     }
@@ -146,7 +148,7 @@ final class BVCalendar: UIView {
     
     private func date(at indexPath: IndexPath) -> Date {
         var date = calendar.date(byAdding: .month, value: indexPath.section, to: startDate)!
-        date = calendar.date(byAdding: .day, value: indexPath.row, to: date)!
+        date = calendar.date(byAdding: .day, value: indexPath.item, to: date)!
         return calendar.date(bySettingHour: 23, minute: 59, second: 59, of: date)!
     }
     
@@ -206,7 +208,7 @@ extension BVCalendar: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! BVCalendarCell
         let dateForCell = date(at: indexPath)
-        cell.label.text = "\(indexPath.row + 1)"
+        cell.label.text = "\(indexPath.item + 1)"
         cell.isUserInteractionEnabled = allowsPastDateSelection || dateForCell >= Date()
         cell.containsCurrentDate = calendar.isDateInToday(dateForCell)
         guard let rangeStartDate = rangeStartDate, let rangeEndDate = rangeEndDate else { return cell }
@@ -217,20 +219,20 @@ extension BVCalendar: UICollectionViewDataSource {
 
         if rangeStartIndexPath == indexPath {
             cell.rangeIndicator = .start
+        } else if rangeEndIndexPath == indexPath {
+            cell.rangeIndicator = .end
         } else if dateForCell > rangeStartDate && dateForCell < rangeEndDate {
-            if indexPath.row % 7 == 0 {
+            if (indexPath.item - 1) % 7 == 0 {
                 cell.rangeIndicator.insert(.rowStart)
-            } else if (indexPath.row + 1) % 7 == 0 {
+            } else if indexPath.item % 7 == 0 {
                 cell.rangeIndicator.insert(.rowEnd)
             } else {
                 cell.rangeIndicator = .middle
             }
-        } else if rangeEndIndexPath == indexPath {
-            cell.rangeIndicator = .end
         } else {
-            cell.rangeIndicator = .none
+            cell.rangeIndicator = []
         }
-                
+        
         return cell
     }
     

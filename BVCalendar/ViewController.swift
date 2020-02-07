@@ -13,9 +13,9 @@ class ViewController: UIViewController {
     @IBOutlet weak var calendar: BVCalendar! {
         didSet {
             calendar.allowsRangeSelection = true
-            calendar.selectedDate = Calendar.current.date(byAdding: .month, value: 2, to: Date())
-//            calendar.setSelectedRange(from: Calendar.current.date(byAdding: .day, value: 2, to: Date())!,
-//                                      to: Calendar.current.date(byAdding: .day, value: 10, to: Date())!)
+//            calendar.selectedDate = Calendar.current.date(byAdding: .month, value: 2, to: Date())
+//            calendar.setSelectedRange(from: Calendar.current.date(byAdding: .day, value: 10, to: Date())!,
+//                                      to: Calendar.current.date(byAdding: .day, value: 18, to: Date())!)
         }
     }
     
