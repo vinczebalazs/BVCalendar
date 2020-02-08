@@ -11,10 +11,20 @@ import UIKit
 @IBDesignable
 final class BVCalendar: UIView {
     
+    // MARK: Static Private Properties
+    
+    private static let dayNamesHeight = CGFloat(40)
+    
+    // MARK: Static Public Functions
+    
+    static func sizeFor(width: CGFloat) -> CGSize {
+        CGSize(width: width, height: dayNamesHeight + (width / 7) * 6 + 50)
+    }
+    
     // MARK: Property Overrides
     
     override var intrinsicContentSize: CGSize {
-        CGSize(width: frame.width, height: dayNameLabelsStackView.frame.height + (frame.width / 7) * 6 + 50)
+        Self.sizeFor(width: frame.width)
     }
      
     // MARK: Public Properties
@@ -89,8 +99,14 @@ final class BVCalendar: UIView {
     
     // MARK: Function Overrides
     
-    override func awakeFromNib() {
-        super.awakeFromNib()
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        
+        setup()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
         
         setup()
     }
@@ -133,6 +149,7 @@ final class BVCalendar: UIView {
             dayNameLabelsStackView.leftAnchor.constraint(equalTo: leftAnchor),
             dayNameLabelsStackView.topAnchor.constraint(equalTo: topAnchor),
             dayNameLabelsStackView.rightAnchor.constraint(equalTo: rightAnchor),
+            dayNameLabelsStackView.heightAnchor.constraint(equalToConstant: Self.dayNamesHeight),
             collectionView.leftAnchor.constraint(equalTo: leftAnchor),
             collectionView.topAnchor.constraint(equalTo: dayNameLabelsStackView.bottomAnchor),
             collectionView.rightAnchor.constraint(equalTo: rightAnchor),
